@@ -77,7 +77,76 @@ public class Marker {
      * Example: a = "ACGTAC", b = "TTACGT", k = 4: the words of a are ACGT, CGTA, GTAC; only ACGT is in b, so the answer is 1.
      */
     public static int sharedWords(String a, String b, int k) {
-        // TODO Mission 4
-        return -1;
+        if (k <= 0 || a.length() < k || b.length() < k) {
+            return 0;
+        }
+
+        long base = 31;
+        long mod = 1_000_000_007;
+        long power = 1;
+
+        for (int i = 1; i < k; i++) {
+            power = (power * base) % mod;
+        }
+
+        HashMap<Long, ArrayList<Integer>> windows = new HashMap<>();
+        long hashB = 0;
+
+        for (int i = 0; i < k; i++) {
+            hashB = (hashB * base + b.charAt(i)) % mod;
+        }
+
+        for (int i = 0; i <= b.length() - k; i++) {
+            ArrayList<Integer> list = windows.get(hashB);
+
+            if (list == null) {
+                list = new ArrayList<>();
+                windows.put(hashB, list);
+            }
+
+            list.add(i);
+
+            if (i < b.length() - k) {
+                hashB = (hashB - b.charAt(i) * power % mod + mod) % mod;
+                hashB = (hashB * base + b.charAt(i + k)) % mod;
+            }
+        }
+
+        long hashA = 0;
+
+        for (int i = 0; i < k; i++) {
+            hashA = (hashA * base + a.charAt(i)) % mod;
+        }
+
+        int count = 0;
+
+        for (int i = 0; i <= a.length() - k; i++) {
+            ArrayList<Integer> candidates = windows.get(hashA);
+
+            if (candidates != null) {
+                for (int position : candidates) {
+                    boolean same = true;
+
+                    for (int j = 0; j < k; j++) {
+                        if (a.charAt(i + j) != b.charAt(position + j)) {
+                            same = false;
+                            break;
+                        }
+                    }
+
+                    if (same) {
+                        count++;
+                        break;
+                    }
+                }
+            }
+
+            if (i < a.length() - k) {
+                hashA = (hashA - a.charAt(i) * power % mod + mod) % mod;
+                hashA = (hashA * base + a.charAt(i + k)) % mod;
+            }
+        }
+
+        return count;
     }
 }
